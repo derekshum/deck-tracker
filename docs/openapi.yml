@@ -28,7 +28,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateGameRequest'
+              $ref: '#/components/schemas/GameRequest'
       responses:
         '201':
           description: Created
@@ -54,6 +54,42 @@ paths:
                 $ref: '#/components/schemas/GameDetail'
         '404':
           $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Replace a game
+      operationId: updateGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a game and all associated data
+      operationId: deleteGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '204':
+          description: No content
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /games/{gameId}/card-types:
     get:
@@ -83,7 +119,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCardTypeRequest'
+              $ref: '#/components/schemas/CardTypeRequest'
       responses:
         '201':
           description: Created
@@ -96,6 +132,61 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /games/{gameId}/card-types/{cardTypeId}:
+    get:
+      summary: Get a single card type
+      operationId: getCardType
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardTypeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardType'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Replace a card type
+      operationId: updateCardType
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardTypeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardTypeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a card type
+      operationId: deleteCardType
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardTypeId'
+      responses:
+        '204':
+          description: No content
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
   /games/{gameId}/cards:
     post:
       summary: Add a card to a game's card pool
@@ -107,7 +198,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCardRequest'
+              $ref: '#/components/schemas/CardRequest'
       responses:
         '201':
           description: Created
@@ -120,16 +211,89 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /decks:
+  /games/{gameId}/cards/{cardId}:
+    get:
+      summary: Get a single card
+      operationId: getCard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Replace a card
+      operationId: updateCard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a card
+      operationId: deleteCard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - $ref: '#/components/parameters/CardId'
+      responses:
+        '204':
+          description: No content
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /games/{gameId}/analysis:
+    get:
+      summary: Get aggregate analysis across all decks for a game
+      operationId: getGameAnalysis
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - name: result
+          in: query
+          required: false
+          description: Filter to only winning or losing decks
+          schema:
+            $ref: '#/components/schemas/DeckResult'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateAnalysis'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /games/{gameId}/decks:
     get:
       summary: List decks, optionally filtered by game
       operationId: getDecks
       parameters:
-        - name: gameId
-          in: query
-          required: false
-          schema:
-            type: integer
         - name: result
           in: query
           required: false
@@ -164,7 +328,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateDeckRequest'
+              $ref: '#/components/schemas/DeckRequest'
       responses:
         '201':
           description: Created
@@ -191,6 +355,40 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    put:
+      summary: Replace a deck including its card list
+      operationId: updateDeck
+      parameters:
+        - $ref: '#/components/parameters/DeckId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a deck
+      operationId: deleteDeck
+      parameters:
+        - $ref: '#/components/parameters/DeckId'
+      responses:
+        '204':
+          description: No content
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /decks/{deckId}/analysis:
     get:
       summary: Get analysis for a single deck
@@ -207,33 +405,23 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /games/{gameId}/analysis:
-    get:
-      summary: Get aggregate analysis across all decks for a game
-      operationId: getGameAnalysis
-      parameters:
-        - $ref: '#/components/parameters/GameId'
-        - name: result
-          in: query
-          required: false
-          description: Filter to only winning or losing decks
-          schema:
-            $ref: '#/components/schemas/DeckResult'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AggregateAnalysis'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
 components:
 
   parameters:
     GameId:
       name: gameId
+      in: path
+      required: true
+      schema:
+        type: integer
+    CardTypeId:
+      name: cardTypeId
+      in: path
+      required: true
+      schema:
+        type: integer
+    CardId:
+      name: cardId
       in: path
       required: true
       schema:
@@ -246,14 +434,20 @@ components:
         type: integer
 
   responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    BadRequest:
-      description: Validation error
+    Conflict:
+      description: Resource cannot be deleted due to existing references
       content:
         application/json:
           schema:
@@ -277,6 +471,19 @@ components:
           type: number
           format: float
           description: 0.0 to 1.0
+
+    GameRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 500
 
     GameDetail:
       allOf:
@@ -303,7 +510,7 @@ components:
           type: string
           nullable: true
 
-    CreateCardTypeRequest:
+    CardTypeRequest:
       type: object
       required: [name]
       properties:
@@ -327,13 +534,15 @@ components:
           type: string
           nullable: true
         type:
-          $ref: '#/components/schemas/CardType'
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/CardType'
         cost:
           type: integer
           nullable: true
-          description: Mana/coin cost — nullable since not all games have this
+          description: Energy/coin cost — nullable since not all games have this
 
-    CreateGameRequest:
+    CardRequest:
       type: object
       required: [name]
       properties:
@@ -345,21 +554,9 @@ components:
           type: string
           nullable: true
           maxLength: 500
-
-    CreateCardRequest:
-      type: object
-      required: [name, typeId]
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        description:
-          type: string
-          nullable: true
-          maxLength: 500
         typeId:
           type: integer
+          nullable: true
           description: Must reference a CardType belonging to this game
         cost:
           type: integer
@@ -369,27 +566,6 @@ components:
     DeckResult:
       type: string
       enum: [win, loss, abandoned]
-
-    CreateDeckRequest:
-      type: object
-      required: [gameId, result, cardIds]
-      properties:
-        gameId:
-          type: integer
-        result:
-          $ref: '#/components/schemas/DeckResult'
-        character:
-          type: string
-          nullable: true
-          description: Optional — e.g. Ironclad, Silent, Watcher in StS
-        notes:
-          type: string
-          nullable: true
-        cardIds:
-          type: array
-          description: The final deck — list of card IDs with quantities
-          items:
-            $ref: '#/components/schemas/DeckCardEntry'
 
     DeckCardEntry:
       type: object
@@ -420,6 +596,25 @@ components:
           format: date-time
         cardCount:
           type: integer
+
+    DeckRequest:
+      type: object
+      required: [result, cards]
+      properties:
+        result:
+          $ref: '#/components/schemas/DeckResult'
+        character:
+          type: string
+          nullable: true
+          description: Optional — e.g. Ironclad, Silent, Watcher in StS
+        notes:
+          type: string
+          nullable: true
+        cards:
+          type: array
+          description: The final deck — list of card IDs with quantities
+          items:
+            $ref: '#/components/schemas/DeckCardEntry'
 
     DeckDetail:
       allOf:
