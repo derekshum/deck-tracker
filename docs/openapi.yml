@@ -1,0 +1,540 @@
+openapi: 3.0.3
+info:
+  title: Deck Tracker API
+  version: 1.0.0
+  description: Track deck building runs across tabletop and roguelike games
+
+paths:
+
+  /games:
+    get:
+      summary: List all games
+      operationId: getGames
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameSummary'
+
+    post:
+      summary: Add a game
+      operationId: createGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /games/{gameId}:
+    get:
+      summary: Get a game with its card pool
+      operationId: getGame
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/card-types:
+    get:
+      summary: List card types for a game
+      operationId: getCardTypes
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardType'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Add a card type to a game
+      operationId: createCardType
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardTypeRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/cards:
+    post:
+      summary: Add a card to a game's card pool
+      operationId: createCard
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /decks:
+    get:
+      summary: List decks, optionally filtered by game
+      operationId: getDecks
+      parameters:
+        - name: gameId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: result
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/DeckResult'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedDecks'
+
+    post:
+      summary: Log a new deck
+      operationId: createDeck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeckRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /decks/{deckId}:
+    get:
+      summary: Get a deck with its cards
+      operationId: getDeck
+      parameters:
+        - $ref: '#/components/parameters/DeckId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /decks/{deckId}/analysis:
+    get:
+      summary: Get analysis for a single deck
+      operationId: getDeckAnalysis
+      parameters:
+        - $ref: '#/components/parameters/DeckId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckAnalysis'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /games/{gameId}/analysis:
+    get:
+      summary: Get aggregate analysis across all decks for a game
+      operationId: getGameAnalysis
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+        - name: result
+          in: query
+          required: false
+          description: Filter to only winning or losing decks
+          schema:
+            $ref: '#/components/schemas/DeckResult'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateAnalysis'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      schema:
+        type: integer
+    DeckId:
+      name: deckId
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  schemas:
+
+    GameSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        totalDecks:
+          type: integer
+        winRate:
+          type: number
+          format: float
+          description: 0.0 to 1.0
+
+    GameDetail:
+      allOf:
+        - $ref: '#/components/schemas/GameSummary'
+        - type: object
+          properties:
+            cardTypes:
+              type: array
+              items:
+                $ref: '#/components/schemas/CardType'
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Card'
+
+    CardType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    CreateCardTypeRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 500
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          $ref: '#/components/schemas/CardType'
+        cost:
+          type: integer
+          nullable: true
+          description: Mana/coin cost — nullable since not all games have this
+
+    CreateGameRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 500
+
+    CreateCardRequest:
+      type: object
+      required: [name, typeId]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 500
+        typeId:
+          type: integer
+          description: Must reference a CardType belonging to this game
+        cost:
+          type: integer
+          nullable: true
+          minimum: 0
+
+    DeckResult:
+      type: string
+      enum: [win, loss, abandoned]
+
+    CreateDeckRequest:
+      type: object
+      required: [gameId, result, cardIds]
+      properties:
+        gameId:
+          type: integer
+        result:
+          $ref: '#/components/schemas/DeckResult'
+        character:
+          type: string
+          nullable: true
+          description: Optional — e.g. Ironclad, Silent, Watcher in StS
+        notes:
+          type: string
+          nullable: true
+        cardIds:
+          type: array
+          description: The final deck — list of card IDs with quantities
+          items:
+            $ref: '#/components/schemas/DeckCardEntry'
+
+    DeckCardEntry:
+      type: object
+      required: [cardId, quantity]
+      properties:
+        cardId:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+
+    DeckSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        gameId:
+          type: integer
+        gameName:
+          type: string
+        result:
+          $ref: '#/components/schemas/DeckResult'
+        character:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        cardCount:
+          type: integer
+
+    DeckDetail:
+      allOf:
+        - $ref: '#/components/schemas/DeckSummary'
+        - type: object
+          properties:
+            notes:
+              type: string
+              nullable: true
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeckCardEntry'
+
+    PagedDecks:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckSummary'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+
+    CardFrequency:
+      type: object
+      properties:
+        card:
+          $ref: '#/components/schemas/Card'
+        count:
+          type: integer
+        winRate:
+          type: number
+          format: float
+
+    CardPair:
+      type: object
+      description: Two cards that appear together, with frequency and win rate
+      properties:
+        cardA:
+          $ref: '#/components/schemas/Card'
+        cardB:
+          $ref: '#/components/schemas/Card'
+        coOccurrenceCount:
+          type: integer
+        winRate:
+          type: number
+          format: float
+
+    DeckAnalysis:
+      type: object
+      description: Analysis of a single deck
+      properties:
+        deckId:
+          type: integer
+        totalCardCount:
+          type: integer
+          description: Sum of all card quantities
+        uniqueCardCount:
+          type: integer
+          description: Number of distinct cards
+        typeBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+          description: e.g. {"Attack": 12, "Skill": 8, "Power": 3}
+        costCurve:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Card count at each cost value e.g. {"0": 3, "1": 8, "2": 6, "3+": 4}
+          nullable: true
+          x-note: null if the game has no card costs
+        averageCost:
+          type: number
+          format: float
+          nullable: true
+        mostDuplicated:
+          nullable: true
+          description: The card with the highest quantity in this deck
+          allOf:
+            - $ref: '#/components/schemas/DeckCardEntry'
+
+    AggregateAnalysis:
+      type: object
+      description: Cross-deck analysis for a game
+      properties:
+        gameId:
+          type: integer
+        totalDecks:
+          type: integer
+        winRate:
+          type: number
+          format: float
+        topCards:
+          type: array
+          description: Most frequently included cards, sorted by win rate
+          items:
+            $ref: '#/components/schemas/CardFrequency'
+        topPairs:
+          type: array
+          description: Most common card pairings, sorted by co-occurrence count
+          items:
+            $ref: '#/components/schemas/CardPair'
+
+    ProblemDetails:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
