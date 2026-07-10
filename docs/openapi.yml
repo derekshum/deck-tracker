@@ -188,6 +188,23 @@ paths:
           $ref: '#/components/responses/Conflict'
 
   /games/{gameId}/cards:
+    get:
+      summary: List cards in a game's card pool
+      operationId: getCards
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
     post:
       summary: Add a card to a game's card pool
       operationId: createCard
