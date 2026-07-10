@@ -701,12 +701,12 @@ components:
           type: object
           additionalProperties:
             type: integer
-          description: e.g. {"Attack": 12, "Skill": 8, "Power": 3}
+          description: e.g. "Attack"=12, "Skill"=8, "Power"=3
         costCurve:
           type: object
           additionalProperties:
             type: integer
-          description: Card count at each cost value e.g. {"0": 3, "1": 8, "2": 6, "3+": 4}
+          description: Card count at each cost value e.g. "0"=3, "1"=8, "2"=6, "3+"=4
           nullable: true
           x-note: null if the game has no card costs
         averageCost:
