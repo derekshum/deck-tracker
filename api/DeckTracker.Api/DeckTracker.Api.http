@@ -1,0 +1,16 @@
+@DeckTracker.Api_HostAddress = http://localhost:5119
+
+GET {{DeckTracker.Api_HostAddress}}/games
+Accept: application/json
+
+###
+
+POST {{DeckTracker.Api_HostAddress}}/games
+Content-Type: application/json
+
+{
+  "name": "Slay the Spire",
+  "description": "Roguelike deckbuilder"
+}
+
+###

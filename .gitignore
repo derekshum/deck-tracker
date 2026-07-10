@@ -1,0 +1,14 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider / VS Code caches
+.vs/
+.idea/
+*.user
+*.suo
+
+# SQLite runtime data
+*.db
+*.db-shm
+*.db-wal
