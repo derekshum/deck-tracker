@@ -9,13 +9,14 @@ public static class CardEndpoints
 {
     public static void MapCardEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/games/{gameId:int}/cards");
+        var gameGroup = app.MapGroup("/games/{gameId:int}/cards");
+        gameGroup.MapGet("/", GetCards);
+        gameGroup.MapPost("/", CreateCard);
 
-        group.MapGet("/", GetCards);
-        group.MapPost("/", CreateCard);
-        group.MapGet("/{cardId:int}", GetCard);
-        group.MapPut("/{cardId:int}", UpdateCard);
-        group.MapDelete("/{cardId:int}", DeleteCard);
+        var cardGroup = app.MapGroup("/cards");
+        cardGroup.MapGet("/{cardId:int}", GetCard);
+        cardGroup.MapPut("/{cardId:int}", UpdateCard);
+        cardGroup.MapDelete("/{cardId:int}", DeleteCard);
     }
 
     private static async Task<IResult> GetCards(int gameId, DeckTrackerDbContext db)
@@ -62,25 +63,31 @@ public static class CardEndpoints
         db.Cards.Add(card);
         await db.SaveChangesAsync();
 
-        var dto = await LoadCardDto(db, gameId, card.Id);
-        return Results.Created($"/games/{gameId}/cards/{card.Id}", dto);
+        var dto = await LoadCardDto(db, card.Id);
+        return Results.Created($"/cards/{card.Id}", dto);
     }
 
-    private static async Task<IResult> GetCard(int gameId, int cardId, DeckTrackerDbContext db)
+    private static async Task<IResult> GetCard(int cardId, DeckTrackerDbContext db)
     {
-        var dto = await LoadCardDto(db, gameId, cardId);
+        var dto = await LoadCardDto(db, cardId);
         if (dto is null)
         {
-            return Problems.NotFound($"Card {cardId} not found in game {gameId}.");
+            return Problems.NotFound($"Card {cardId} not found.");
         }
 
         return Results.Ok(dto);
     }
 
-    private static async Task<IResult> UpdateCard(int gameId, int cardId, CardRequest request, DeckTrackerDbContext db)
+    private static async Task<IResult> UpdateCard(int cardId, CardRequest request, DeckTrackerDbContext db)
     {
+        var card = await db.Cards.FirstOrDefaultAsync(c => c.Id == cardId);
+        if (card is null)
+        {
+            return Problems.NotFound($"Card {cardId} not found.");
+        }
+
         var errors = Validation.Validate(request);
-        if (request.TypeId is not null && !await db.CardTypes.AnyAsync(ct => ct.Id == request.TypeId && ct.GameId == gameId))
+        if (request.TypeId is not null && !await db.CardTypes.AnyAsync(ct => ct.Id == request.TypeId && ct.GameId == card.GameId))
         {
             errors.Add("typeId must reference a card type belonging to this game.");
         }
@@ -90,28 +97,22 @@ public static class CardEndpoints
             return Problems.BadRequest(errors);
         }
 
-        var card = await db.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.GameId == gameId);
-        if (card is null)
-        {
-            return Problems.NotFound($"Card {cardId} not found in game {gameId}.");
-        }
-
         card.Name = request.Name.Trim();
         card.Description = request.Description;
         card.TypeId = request.TypeId;
         card.Cost = request.Cost;
         await db.SaveChangesAsync();
 
-        var dto = await LoadCardDto(db, gameId, cardId);
+        var dto = await LoadCardDto(db, cardId);
         return Results.Ok(dto);
     }
 
-    private static async Task<IResult> DeleteCard(int gameId, int cardId, DeckTrackerDbContext db)
+    private static async Task<IResult> DeleteCard(int cardId, DeckTrackerDbContext db)
     {
-        var card = await db.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.GameId == gameId);
+        var card = await db.Cards.FirstOrDefaultAsync(c => c.Id == cardId);
         if (card is null)
         {
-            return Problems.NotFound($"Card {cardId} not found in game {gameId}.");
+            return Problems.NotFound($"Card {cardId} not found.");
         }
 
         var inUse = await db.DeckCards.AnyAsync(dc => dc.CardId == cardId);
@@ -125,9 +126,9 @@ public static class CardEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<Card?> LoadCardDto(DeckTrackerDbContext db, int gameId, int cardId)
+    private static async Task<Card?> LoadCardDto(DeckTrackerDbContext db, int cardId)
     {
-        var card = await db.Cards.Include(c => c.Type).FirstOrDefaultAsync(c => c.Id == cardId && c.GameId == gameId);
+        var card = await db.Cards.Include(c => c.Type).FirstOrDefaultAsync(c => c.Id == cardId);
         return card is null ? null : GameEndpoints.ToCardDto(card);
     }
 }

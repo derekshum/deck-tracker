@@ -9,13 +9,14 @@ public static class CardTypeEndpoints
 {
     public static void MapCardTypeEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/games/{gameId:int}/card-types");
+        var gameGroup = app.MapGroup("/games/{gameId:int}/card-types");
+        gameGroup.MapGet("/", GetCardTypes);
+        gameGroup.MapPost("/", CreateCardType);
 
-        group.MapGet("/", GetCardTypes);
-        group.MapPost("/", CreateCardType);
-        group.MapGet("/{cardTypeId:int}", GetCardType);
-        group.MapPut("/{cardTypeId:int}", UpdateCardType);
-        group.MapDelete("/{cardTypeId:int}", DeleteCardType);
+        var typeGroup = app.MapGroup("/card-types");
+        typeGroup.MapGet("/{cardTypeId:int}", GetCardType);
+        typeGroup.MapPut("/{cardTypeId:int}", UpdateCardType);
+        typeGroup.MapDelete("/{cardTypeId:int}", DeleteCardType);
     }
 
     private static async Task<IResult> GetCardTypes(int gameId, DeckTrackerDbContext db)
@@ -51,21 +52,21 @@ public static class CardTypeEndpoints
         await db.SaveChangesAsync();
 
         var dto = new CardType(cardType.Id, cardType.Name, cardType.Description);
-        return Results.Created($"/games/{gameId}/card-types/{cardType.Id}", dto);
+        return Results.Created($"/card-types/{cardType.Id}", dto);
     }
 
-    private static async Task<IResult> GetCardType(int gameId, int cardTypeId, DeckTrackerDbContext db)
+    private static async Task<IResult> GetCardType(int cardTypeId, DeckTrackerDbContext db)
     {
-        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId && ct.GameId == gameId);
+        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId);
         if (cardType is null)
         {
-            return Problems.NotFound($"Card type {cardTypeId} not found in game {gameId}.");
+            return Problems.NotFound($"Card type {cardTypeId} not found.");
         }
 
         return Results.Ok(new CardType(cardType.Id, cardType.Name, cardType.Description));
     }
 
-    private static async Task<IResult> UpdateCardType(int gameId, int cardTypeId, CardTypeRequest request, DeckTrackerDbContext db)
+    private static async Task<IResult> UpdateCardType(int cardTypeId, CardTypeRequest request, DeckTrackerDbContext db)
     {
         var errors = Validation.Validate(request);
         if (errors.Count > 0)
@@ -73,10 +74,10 @@ public static class CardTypeEndpoints
             return Problems.BadRequest(errors);
         }
 
-        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId && ct.GameId == gameId);
+        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId);
         if (cardType is null)
         {
-            return Problems.NotFound($"Card type {cardTypeId} not found in game {gameId}.");
+            return Problems.NotFound($"Card type {cardTypeId} not found.");
         }
 
         cardType.Name = request.Name.Trim();
@@ -86,12 +87,12 @@ public static class CardTypeEndpoints
         return Results.Ok(new CardType(cardType.Id, cardType.Name, cardType.Description));
     }
 
-    private static async Task<IResult> DeleteCardType(int gameId, int cardTypeId, DeckTrackerDbContext db)
+    private static async Task<IResult> DeleteCardType(int cardTypeId, DeckTrackerDbContext db)
     {
-        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId && ct.GameId == gameId);
+        var cardType = await db.CardTypes.FirstOrDefaultAsync(ct => ct.Id == cardTypeId);
         if (cardType is null)
         {
-            return Problems.NotFound($"Card type {cardTypeId} not found in game {gameId}.");
+            return Problems.NotFound($"Card type {cardTypeId} not found.");
         }
 
         var inUse = await db.Cards.AnyAsync(c => c.TypeId == cardTypeId);

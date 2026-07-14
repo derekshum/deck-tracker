@@ -132,12 +132,11 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /games/{gameId}/card-types/{cardTypeId}:
+  /card-types/{cardTypeId}:
     get:
       summary: Get a single card type
       operationId: getCardType
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardTypeId'
       responses:
         '200':
@@ -153,7 +152,6 @@ paths:
       summary: Replace a card type
       operationId: updateCardType
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardTypeId'
       requestBody:
         required: true
@@ -177,7 +175,6 @@ paths:
       summary: Delete a card type
       operationId: deleteCardType
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardTypeId'
       responses:
         '204':
@@ -228,12 +225,11 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /games/{gameId}/cards/{cardId}:
+  /cards/{cardId}:
     get:
       summary: Get a single card
       operationId: getCard
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardId'
       responses:
         '200':
@@ -249,7 +245,6 @@ paths:
       summary: Replace a card
       operationId: updateCard
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardId'
       requestBody:
         required: true
@@ -273,7 +268,6 @@ paths:
       summary: Delete a card
       operationId: deleteCard
       parameters:
-        - $ref: '#/components/parameters/GameId'
         - $ref: '#/components/parameters/CardId'
       responses:
         '204':
