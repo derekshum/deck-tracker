@@ -27,6 +27,10 @@ export class GameService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/games';
 
+  list(): Observable<GameSummary[]> {
+    return this.http.get<GameSummary[]>(this.baseUrl)
+  }
+
   getById(id: number): Observable<GameSummary> {
     return this.http.get<GameSummary>(`${this.baseUrl}/${id}`);
   }
@@ -37,5 +41,9 @@ export class GameService {
 
   update(id: number, request: UpdateGameRequest): Observable<GameSummary> {
     return this.http.put<GameSummary>(`${this.baseUrl}/${id}`, request);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

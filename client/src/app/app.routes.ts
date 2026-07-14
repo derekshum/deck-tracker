@@ -5,6 +5,11 @@ export const routes: Routes = [
     path: 'games',
     children: [
       {
+        path: '',
+        loadComponent: () =>
+          import('./games/game-list/game-list.component').then(m => m.GameListComponent)
+      },
+      {
         path: 'new',
         loadComponent: () =>
           import('./games/game-form/game-form.component').then(m => m.GameFormComponent)

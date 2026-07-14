@@ -79,7 +79,7 @@ export class GameFormComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.router.navigate(['/games']); // TODO: create this page
+        this.router.navigate(['/games']);
       },
       error: () => {
         this.error = 'Failed to save game. Please try again.';
