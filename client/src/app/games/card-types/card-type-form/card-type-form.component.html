@@ -1,0 +1,62 @@
+<div class="form-container">
+  <h1>{{ isEditMode ? 'Edit Card Type' : 'New Card Type' }}</h1>
+
+  <div *ngIf="error" class="error-banner">
+    {{ error }}
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    Loading...
+  </div>
+
+  <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-field">
+      <label for="name">Name *</label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        placeholder="e.g. Creature"
+      />
+      <span
+        class="validation-error"
+        *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+        @if (form.get('name')?.hasError('required')) {
+          Name is required
+        } @else if (form.get('name')?.hasError('maxlength')) {
+          Name cannot exceed 100 characters
+        }
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        placeholder="Optional description"
+        rows="4"
+      ></textarea>
+      <span
+        class="validation-error"
+        *ngIf="form.get('description')?.invalid && form.get('description')?.touched">
+        @if (form.get('description')?.hasError('maxlength')) {
+          Description cannot exceed 500 characters
+        }
+      </span>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="button"
+        (click)="router.navigate(['/games', gameId, 'card-types'])">
+        Cancel
+      </button>
+      <button
+        type="submit"
+        [disabled]="form.invalid || isSaving">
+        {{ isSaving ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Card Type' }}
+      </button>
+    </div>
+  </form>
+</div>

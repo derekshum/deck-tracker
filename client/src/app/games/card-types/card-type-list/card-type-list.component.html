@@ -1,0 +1,39 @@
+<div class="card-types-list-container">
+  <div class="list-header">
+    <ng-container *ngIf="(game$ | async) as game">
+      <h1>Card Types (for {{ game.name }})</h1>
+    </ng-container>
+    <a [routerLink]="['/games', gameId(), 'card-types', 'new']" class="btn-primary">
+      Add Card Type
+    </a>
+  </div>
+
+  <div *ngIf="error" class="error-banner">{{ error }}</div>
+
+  <div *ngIf="isLoading" class="loading">Loading...</div>
+
+  <div *ngIf="!isLoading && !error && cardTypes.length === 0" class="empty-state">
+    No card types yet. Add one to get started.
+  </div>
+
+  <div class="card-type-grid" *ngIf="!isLoading && !error && cardTypes.length > 0">
+    <div class="card-type-card" *ngFor="let cardType of cardTypes">
+      <div class="card-header">
+        <h2>{{ cardType.name }}</h2>
+        <div class="card-actions">
+          <a [routerLink]="['/games', gameId(), 'card-types', cardType.id, 'edit']">
+            Edit
+          </a>
+          <button type="button" (click)="onDelete(cardType.id)">
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <p *ngIf="cardType.description" class="card-description">
+        {{ cardType.description }}
+      </p>
+    </div>
+  </div>
+</div>
+
