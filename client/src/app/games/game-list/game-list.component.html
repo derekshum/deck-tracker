@@ -1,9 +1,7 @@
 <div class="game-list-container">
   <div class="list-header">
     <h1>Games</h1>
-    <button type="button" (click)="router.navigate(['/games/new'])">
-      Add Game
-    </button>
+    <a routerLink="/games/new" class="btn-primary">Add Game</a>
   </div>
 
   <div *ngIf="error" class="error-banner">{{ error }}</div>
@@ -14,31 +12,31 @@
     No games yet. Add one to get started.
   </div>
 
-  <div class="game-card" *ngFor="let game of games">
-    <div class="game-card-header">
-      <h2>{{ game.name }}</h2>
-      <div class="game-card-actions">
-        <button type="button" (click)="router.navigate(['/games', game.id, 'edit'])">
-          Edit
-        </button>
-        <button type="button" (click)="onDelete(game.id)">
-          Delete
-        </button>
+  <div class="game-grid" *ngIf="!isLoading && !error && games.length > 0">
+    <div class="game-card" *ngFor="let game of games">
+      <div class="game-card-header">
+        <h2>{{ game.name }}</h2>
+        <div class="game-card-actions">
+          <a [routerLink]="['/games', game.id, 'edit']">Edit</a>
+          <button type="button" (click)="onDelete(game.id)">
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
 
-    <p *ngIf="game.description" class="game-description">
-      {{ game.description }}
-    </p>
+      <p *ngIf="game.description" class="game-description">
+        {{ game.description }}
+      </p>
 
-    <div class="game-stats">
-      <div class="stat">
-        <span class="stat-label">Decks</span>
-        <span class="stat-value">{{ game.totalDecks }}</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">Win Rate</span>
-        <span class="stat-value">{{ game.winRate | percent }}</span>
+      <div class="game-stats">
+        <div class="stat">
+          <span class="stat-label">Decks</span>
+          <span class="stat-value">{{ game.totalDecks }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-value">{{ game.winRate | percent }}</span>
+        </div>
       </div>
     </div>
   </div>

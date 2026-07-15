@@ -1,12 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { GameService, GameSummary } from '../game.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule, PercentPipe } from '@angular/common';
 
 @Component({
   selector: 'app-game-list',
   standalone: true,
-  imports: [CommonModule, PercentPipe],
+  imports: [RouterLink, CommonModule, PercentPipe],
   templateUrl: './game-list.component.html',
   styleUrl: './game-list.component.scss'
 })
@@ -26,7 +26,8 @@ export class GameListComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.gameService.list().subscribe({ // using subscription rather than observable to allow for optimistic updates on delete
+    // using subscription rather than observable to allow for optimistic updates on delete
+    this.gameService.list().subscribe({
       next: games => {
         this.games = games;
         this.isLoading = false;
